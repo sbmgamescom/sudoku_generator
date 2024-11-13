@@ -91,41 +91,34 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  // Асинхронная генерация новых головоломок для определенной сложности и добавление к существующим
   Future<void> generatePuzzlesForDifficulty(
       String difficulty, int difficultyLevel) async {
     try {
-      await loadExistingPuzzles(
-          difficulty); // Загрузка существующих головоломок перед генерацией новых
+      await loadExistingPuzzles(difficulty);
 
       SudokuGenerator generator;
       List<Map<String, dynamic>> generatedPuzzles = [];
       setState(() {
-        isLoading = true; // Включаем индикатор загрузки
-        progress = 0; // Сбрасываем прогресс
+        isLoading = true;
+        progress = 0;
       });
 
-      int numberOfPuzzles = 10; // Количество новых головоломок
+      int numberOfPuzzles = 10;
 
-      // Показываем индикатор загрузки
       for (int i = 0; i < numberOfPuzzles; i++) {
-        generator = SudokuGenerator(); // Создаем новый экземпляр генератора
+        generator = SudokuGenerator();
 
-        // Задержка и генерация головоломки
         List<List<int>> puzzle = await Future.delayed(
-            const Duration(milliseconds: 100), // Увеличиваем задержку
+            const Duration(milliseconds: 100),
             () => generator.generatePuzzle(difficultyLevel));
 
-        // Генерация уникального UUID для каждой головоломки
         String uniqueId = uuid.v4();
 
-        // Добавляем новую головоломку с уникальным UUID
         generatedPuzzles.add({
-          'id': uniqueId, // Уникальный ID (UUID) для сложности
+          'id': uniqueId,
           'puzzle': puzzle,
         });
 
-        // Обновляем прогресс после каждой головоломки
         setState(() {
           progress = (i + 1) / numberOfPuzzles;
         });
@@ -133,39 +126,31 @@ class _MyHomePageState extends State<MyHomePage> {
         print('Головоломка с ID $uniqueId для "$difficulty" сгенерирована.');
       }
 
-      // Добавляем новые головоломки к существующим
       allPuzzles[difficulty]!.addAll(generatedPuzzles);
 
-      // Конвертируем объединенный список головоломок в JSON
       String jsonPuzzles = jsonEncode(allPuzzles[difficulty]);
 
-      // Получаем путь к директории документов
       Directory appDocDir = await getApplicationDocumentsDirectory();
       String appDocPath = appDocDir.path;
       String fileName = getFileNameForDifficulty(difficulty);
 
-      // Создаем файл в директории документов (перезаписываем его)
       File file = File('$appDocPath/$fileName');
 
-      // Записываем JSON в файл
       await file.writeAsString(jsonPuzzles);
 
       print(
           'Добавлено $numberOfPuzzles головоломок для "$difficulty" и сохранено в ${file.path}');
 
-      // Сохраняем путь к файлу
       jsonFilePath = file.path;
     } catch (e) {
       print('Ошибка во время генерации: $e');
     } finally {
-      // Завершаем загрузку и обновляем состояние
       setState(() {
         isLoading = false;
       });
     }
   }
 
-  // Определение имени файла для сложности
   String getFileNameForDifficulty(String difficulty) {
     switch (difficulty) {
       case 'easy':
@@ -184,7 +169,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    // Загружаем существующие головоломки для всех сложностей при инициализации
     loadExistingPuzzles('easy');
     loadExistingPuzzles('medium');
     loadExistingPuzzles('hard');
